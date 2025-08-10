@@ -1,0 +1,24 @@
+apiVersion: k3d.io/v1alpha5 # k3d 設定のバージョン
+kind: Simple # クラスター構成の種類（シンプル構成）
+metadata:
+  name: logs-cluster # クラスター名
+
+servers: 1 # サーバーノード数（マスター）
+agents: 2 # エージェントノード数（ワーカー）
+
+# Ingress(LB)用ポートマッピング（Traefikなどが使用）
+ports:
+  - port: 8080:80 # ローカル8080 → クラスタ内80番（HTTP用Ingress）
+    nodeFilters:
+      - loadbalancer
+  - port: 8443:443 # ローカル8443 → クラスタ内443番（HTTPS用Ingress）
+    nodeFilters:
+      - loadbalancer
+
+  # NodePort サービスをホストに直接公開
+  - port: 30080:30080 # REST API(NodePort)用
+    nodeFilters:
+      - server:0
+  - port: 30051:30051 # gRPC API(NodePort)用
+    nodeFilters:
+      - server:0
