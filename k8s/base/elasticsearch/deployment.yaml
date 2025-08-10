@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch # Deployment名
+  namespace: logs-system # Namespace
+spec:
+  replicas: 1 # Pod数
+  selector:
+    matchLabels:
+      app: elasticsearch # 対象Podのラベル
+  template:
+    metadata:
+      labels:
+        app: elasticsearch # Podに付与するラベル
+    spec:
+      containers:
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.18.1
+          env:
+            - name: discovery.type # 単一ノードモード
+              value: single-node
+            - name: xpack.security.enabled # セキュリティ無効化（ローカル用）
+              value: "false"
+          ports:
+            - containerPort: 9200 # Elasticsearch HTTPポート
+          readinessProbe: # 起動準備チェック
+            httpGet:
+              path: /
+              port: 9200
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe: # 動作チェック
+            httpGet:
+              path: /
+              port: 9200
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          volumeMounts:
+            - name: esdata
+              mountPath: /usr/share/elasticsearch/data
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+      volumes:
+        - name: esdata
+          emptyDir: {} # 永続化なし（開発用）
