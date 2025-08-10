@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-migration-sql # DBマイグレーション用SQLを格納するConfigMap名
+  namespace: logs-system
+data:
+  init.sql: |
+    -- UUID生成用拡張（pgcrypto）を有効化
+    CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+    -- ログテーブル作成（存在しない場合のみ）
+    CREATE TABLE IF NOT EXISTS logs (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(), -- UUIDを自動生成
+      trace_id TEXT,                                 -- トレースID（分散トレーシング用）
+      timestamp TIMESTAMPTZ NOT NULL,                -- ログ発生時刻
+      level VARCHAR(10) NOT NULL,                    -- ログレベル（INFO, ERRORなど）
+      "service" TEXT NOT NULL,                       -- サービス名
+      message TEXT NOT NULL,                         -- ログメッセージ
+      metadata JSONB,                                -- 追加メタデータ（任意のJSON）
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()  -- 作成時刻（デフォルト現在時刻）
+    );
+
+    -- インデックス作成（存在しない場合のみ）
+    CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON logs (timestamp);
+    CREATE INDEX IF NOT EXISTS idx_logs_service   ON logs ("service");
+    CREATE INDEX IF NOT EXISTS idx_logs_level     ON logs (level);
