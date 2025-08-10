@@ -66,8 +66,8 @@ spec:
               drop: ["ALL"] # すべての特権を削除
           resources: # リソース要求/制限
             requests:
-              cpu: "100m"
-              memory: "128Mi"
+              cpu: "200m"
+              memory: "256Mi"
             limits:
               cpu: "500m"
               memory: "512Mi"

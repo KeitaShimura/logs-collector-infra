@@ -19,3 +19,10 @@ spec:
           args: ["-js"] # JetStream有効化
           ports:
             - containerPort: 4222 # クライアント接続用ポート
+          resources: # リソース要求/制限
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
