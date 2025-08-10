@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nats # Deployment名
+  namespace: logs-system # Namespace
+spec:
+  replicas: 1 # Pod数
+  selector:
+    matchLabels:
+      app: nats # 対象Podのラベル
+  template:
+    metadata:
+      labels:
+        app: nats # Podに付与するラベル
+    spec:
+      containers:
+        - name: nats
+          image: nats:2.10-alpine # Composeと同じバージョン
+          args: ["-js"] # JetStream有効化
+          ports:
+            - containerPort: 4222 # クライアント接続用ポート
+          resources: # リソース要求/制限
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

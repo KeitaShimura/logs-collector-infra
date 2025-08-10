@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: db # Service名（アプリからのDB_HOST）
+  namespace: logs-system
+spec:
+  selector:
+    app: db # 対象Podのラベル
+  ports:
+    - name: pg # PostgreSQL用ポート
+      port: 5432 # Serviceのポート
+      targetPort: 5432 # Pod内ポート

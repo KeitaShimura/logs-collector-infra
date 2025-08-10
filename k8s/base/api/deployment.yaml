@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logs-collector-api # Deployment名
+  namespace: logs-system # Namespace
+spec:
+  replicas: 1
+  # ★ ローリングアップデート戦略を明示（無停止リリース）
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0 # 更新中も全Pod稼働を維持
+      maxSurge: 1 # 新Podを1つまで追加で起動可
+  selector:
+    matchLabels:
+      app: logs-collector-api # 対象Podのラベル
+  template:
+    metadata:
+      labels:
+        app: logs-collector-api # Podに付与するラベル
+    spec:
+      # Pod全体のセキュリティコンテキスト（コンテナ共通設定）
+      securityContext:
+        runAsNonRoot: true # rootでの実行を禁止
+        runAsUser: 1000 # 非rootユーザーID
+        fsGroup: 1000 # マウントボリュームのグループ所有権
+      containers:
+        - name: api
+          image: ghcr.io/keitashimura/logs-collector-api:v0.0.5
+          ports:
+            - containerPort: 50051 # gRPC
+            - containerPort: 8080 # REST
+          env: # DBやESの接続設定
+            - name: DB_HOST
+              value: db
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: logs_collector
+            - name: DB_USER
+              value: logs_collector_test
+            - name: DB_PASS
+              value: logs_collector_test
+            - name: ELASTICSEARCH_URL
+              value: http://elasticsearch:9200
+          # ★ プローブ（まずはTCPで最小構成）
+          readinessProbe: # 起動準備OKの判定
+            tcpSocket:
+              port: 8080 # RESTポートで確認
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe: # 稼働中チェック
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          # コンテナ単位のセキュリティ設定
+          securityContext:
+            allowPrivilegeEscalation: false # 権限昇格禁止
+            readOnlyRootFilesystem: true # ルートFSを読み取り専用に
+            capabilities:
+              drop: ["ALL"] # すべての特権を削除
+          resources: # リソース要求/制限
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrate # Job名（毎回apply時に実行するDBマイグレーション用）
+  namespace: logs-system
+spec:
+  backoffLimit: 3 # 失敗時の最大リトライ回数
+  template:
+    spec:
+      restartPolicy: OnFailure # コンテナ失敗時のみ再実行
+      containers:
+        - name: migrate
+          image: postgres:17 # マイグレーション実行用のPostgreSQL公式イメージ
+          env: # DB接続情報（Service名やユーザ/パスワード）
+            - name: PGHOST
+              value: db # PostgreSQL Service名
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              value: logs_collector_test
+            - name: PGPASSWORD
+              value: logs_collector_test
+            - name: PGDATABASE
+              value: logs_collector
+          volumeMounts: # SQLファイルをConfigMapとしてマウント
+            - name: sql
+              mountPath: /sql
+          resources: # リソース要求・制限
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          command: # マイグレーション実行コマンド
+            - sh
+            - -c
+            - |
+              # PostgreSQLが起動して接続可能になるまで待機
+              until pg_isready -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE"; do
+                echo "waiting for postgres..."; sleep 2;
+              done
+              # SQLファイルを適用（ON_ERROR_STOP=1でエラー時に停止）
+              psql -v ON_ERROR_STOP=1 -f /sql/init.sql
+      volumes:
+        - name: sql # マウントするConfigMap
+          configMap:
+            name: db-migration-sql # ConfigMap名
+            items:
+              - key: init.sql # ConfigMap内のキー
+                path: init.sql # コンテナ内でのファイル名

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch # Service名
+  namespace: logs-system # Namespace
+spec:
+  selector:
+    app: elasticsearch # 対象Podのラベル
+  ports:
+    - name: http # HTTP用ポート
+      port: 9200 # Serviceが公開するポート
+      targetPort: 9200 # Pod内コンテナのポート
