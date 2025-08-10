@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db # StatefulSet名
+  namespace: logs-system
+spec:
+  serviceName: db # 紐づけるService名
+  replicas: 1 # Pod数
+  selector:
+    matchLabels:
+      app: db # 対象Podのラベル
+  template:
+    metadata:
+      labels:
+        app: db # Podに付与するラベル
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17 # Postgresバージョン
+          ports:
+            - containerPort: 5432 # PostgreSQL用ポート
+          env:
+            - name: POSTGRES_DB
+              value: "logs_collector"
+            - name: POSTGRES_USER
+              value: "logs_collector_test"
+            - name: POSTGRES_PASSWORD
+              value: "logs_collector_test"
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi # 永続ボリュームサイズ
