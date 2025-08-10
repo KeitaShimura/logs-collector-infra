@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats # Service名
+  namespace: logs-system # Namespace
+spec:
+  selector:
+    app: nats # 対象Podのラベル
+  type: NodePort # ホストから直接アクセス可能に
+  ports:
+    - name: client
+      port: 4222 # Service側ポート
+      targetPort: 4222 # Pod内ポート
+      nodePort: 30022 # ホスト側ポート
