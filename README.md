@@ -96,20 +96,18 @@ logs-collector-infra/
 └── README.md                      # このファイル
 ```
 
-````
-
 ## 使用方法
 
 ### Makefile コマンド
 
-| コマンド | 説明 | 詳細 |
-|---------|------|------|
-| `make create` | k3d クラスターを作成 | `k3d cluster create logs-cluster --config k3d/cluster.yaml` |
-| `make delete` | k3d クラスターを削除 | `k3d cluster delete logs-cluster` |
-| `make apply` | マニフェストを適用 | `kubectl apply -k k8s/overlays/local` |
-| `make teardown` | マニフェストを削除 | `kubectl delete -k k8s/overlays/local` |
-| `make ctx` | コンテキスト切替と確認 | `kubectl config use-context k3d-logs-cluster` |
-| `make diff` | マニフェストの差分表示 | `kubectl diff -k k8s/overlays/local` |
+| コマンド        | 説明                   | 詳細                                                        |
+| --------------- | ---------------------- | ----------------------------------------------------------- |
+| `make create`   | k3d クラスターを作成   | `k3d cluster create logs-cluster --config k3d/cluster.yaml` |
+| `make delete`   | k3d クラスターを削除   | `k3d cluster delete logs-cluster`                           |
+| `make apply`    | マニフェストを適用     | `kubectl apply -k k8s/overlays/local`                       |
+| `make teardown` | マニフェストを削除     | `kubectl delete -k k8s/overlays/local`                      |
+| `make ctx`      | コンテキスト切替と確認 | `kubectl config use-context k3d-logs-cluster`               |
+| `make diff`     | マニフェストの差分表示 | `kubectl diff -k k8s/overlays/local`                        |
 
 ### 手動コマンド
 
@@ -125,7 +123,7 @@ kubectl logs -f deployment/logs-collector-api -n logs-system
 
 # サービス確認
 kubectl get svc -n logs-system
-````
+```
 
 ## 🔧 設定
 
